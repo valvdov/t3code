@@ -91,6 +91,24 @@ scp /tmp/patches/*.patch root@10.0.0.140:/opt/t3code-fork-patches/
 ssh root@10.0.0.140 'rm -f /opt/t3code-fork-patches/<старые>.patch'   # если менялась нумерация
 ```
 
+### Харнессы на сервере
+
+Все харнессы с npm-пакетами установлены глобально через npm — так их обновляет
+одна команда сразу для обоих пользователей, и в самом T3 работает кнопка
+«Update now»:
+
+| Харнесс     | Пакет                       | Обновление                                  |
+| ----------- | --------------------------- | ------------------------------------------- |
+| Codex       | `@openai/codex`             | `npm i -g @openai/codex@latest`             |
+| Claude      | `@anthropic-ai/claude-code` | `npm i -g @anthropic-ai/claude-code@latest` |
+| OpenCode    | `opencode-ai`               | `npm i -g opencode-ai@latest`               |
+| Antigravity | — (нет пакета)              | `agy update` (самообновление на месте)      |
+
+Голые бинарники codex/claude, лежавшие в `/usr/local/bin`, переехали в
+`*.pre-npm.bak` — их собственные self-update на общем сервере не работали
+(codex не определял способ установки; claude ставил новую версию в домашний
+каталог того, кто запустил, не трогая общий бинарь).
+
 ### Telegram-бот управления
 
 `@t3codeTokenBot`, сервис `t3code-tokenbot` (root, `/opt/t3code-tokenbot/bot.mjs`,
