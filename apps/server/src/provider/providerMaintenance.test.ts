@@ -332,6 +332,42 @@ it.layer(NodeServices.layer)("providerMaintenance", (it) => {
     });
   });
 
+  // Fork-added (see FORK.md): `/usr/local/bin` is Homebrew's Intel prefix on
+  // macOS but the conventional hand-install location on Linux; advertising
+  // `brew upgrade …` on a Linux server sends users to a command they do not
+  // have.
+  it("treats /usr/local/bin as Homebrew on macOS only", () => {
+    expect(
+      packageToolUpdate.resolve({
+        binaryPath: "/usr/local/bin/package-tool",
+        platform: "darwin",
+        env: { PATH: "" },
+      }).update?.executable,
+    ).toBe("brew");
+
+    expect(
+      packageToolUpdate.resolve({
+        binaryPath: "/usr/local/bin/package-tool",
+        platform: "linux",
+        env: { PATH: "" },
+      }),
+    ).toEqual({
+      provider: driver("packageTool"),
+      packageName: "@example/package-tool",
+      update: null,
+    });
+  });
+
+  it("still detects Homebrew on Linux through the linuxbrew prefix", () => {
+    expect(
+      packageToolUpdate.resolve({
+        binaryPath: "/home/linuxbrew/.linuxbrew/bin/package-tool",
+        platform: "linux",
+        env: { PATH: "" },
+      }).update?.executable,
+    ).toBe("brew");
+  });
+
   it.effect(
     "switches native-package-tool to native updates when the binary resolves through the native installer",
     () =>

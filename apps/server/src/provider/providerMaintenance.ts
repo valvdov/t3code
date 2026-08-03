@@ -55,6 +55,8 @@ export interface ProviderMaintenanceCapabilityResolutionOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly resolvedCommandPath?: string | null;
   readonly realCommandPath?: string | null;
+  /** Overridable for tests; defaults to the host platform. */
+  readonly platform?: NodeJS.Platform;
 }
 
 export interface ProviderMaintenanceCapabilitiesResolver {
@@ -259,9 +261,13 @@ function isNpmGlobalCommandPath(commandPath: string): boolean {
   );
 }
 
-function isHomebrewCommandPath(commandPath: string): boolean {
+function isHomebrewCommandPath(
+  commandPath: string,
+  platform: NodeJS.Platform = process.platform,
+): boolean {
   const normalized = normalizeCommandPath(commandPath);
-  return (
+  // Cellar/Caskroom segments are unambiguous Homebrew markers on any OS.
+  if (
     normalized.includes("/opt/homebrew/cellar/") ||
     normalized.includes("/usr/local/cellar/") ||
     normalized.includes("/homebrew/cellar/") ||
@@ -269,8 +275,15 @@ function isHomebrewCommandPath(commandPath: string): boolean {
     normalized.includes("/usr/local/caskroom/") ||
     normalized.includes("/homebrew/caskroom/") ||
     normalized.startsWith("/opt/homebrew/bin/") ||
-    normalized.startsWith("/usr/local/bin/")
-  );
+    normalized.startsWith("/home/linuxbrew/.linuxbrew/")
+  ) {
+    return true;
+  }
+  // `/usr/local/bin` is Homebrew's Intel prefix on macOS, but on Linux it is
+  // the conventional location for hand-installed binaries — claiming those are
+  // Homebrew makes the UI advertise a `brew upgrade …` command that does not
+  // exist on the machine (see FORK.md).
+  return platform === "darwin" && normalized.startsWith("/usr/local/bin/");
 }
 
 export function resolvePackageManagedProviderMaintenance(
@@ -313,7 +326,11 @@ export function resolvePackageManagedProviderMaintenance(
     if (commandPaths.some(isNpmGlobalCommandPath)) {
       return makeNpmGlobalProviderMaintenanceCapabilities(definition);
     }
-    if (commandPaths.some(isHomebrewCommandPath)) {
+    if (
+      commandPaths.some((commandPath) =>
+        isHomebrewCommandPath(commandPath, options?.platform ?? process.platform),
+      )
+    ) {
       return makeHomebrewProviderMaintenanceCapabilities(definition);
     }
   }
