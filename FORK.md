@@ -71,6 +71,18 @@ ssh server 'npm i -g /tmp/t3-0.0.31-agy.1.tgz && t3 --version'
 `npx t3@latest` — замените команду запуска на просто `t3` (npx каждый раз
 тянет официальный пакет из npm и затирал бы форк).
 
+## T3 Connect в собственных сборках
+
+Официальные сборки вшивают публичную конфигурацию облака при публикации; без
+неё CLI пишет «T3 Connect is unavailable in builds without public
+configuration». В корне репо лежит `.env` (гитигнорен) с этими публичными
+значениями (relay URL + Clerk publishable key + OAuth client id, извлечены из
+официального t3@0.0.31) — `vp run build` подхватывает его автоматически, и
+тарболлы форка получают Connect из коробки. При пересоздании репо файл нужно
+восстановить (значения продублированы в memory/FORK-заметках). Альтернатива
+без пересборки — runtime-переменные `T3CODE_RELAY_URL`,
+`T3CODE_CLERK_PUBLISHABLE_KEY`, `T3CODE_CLERK_CLI_OAUTH_CLIENT_ID`.
+
 ## Обновление на новую версию апстрима
 
 История устроена так: коммит `vendor: t3code upstream snapshot …` = чистые
