@@ -55,6 +55,22 @@ Cursor в апстриме) — включите тумблером в Settings 
 Официальные web/mobile клиенты показывают его без модификаций — список
 провайдеров полностью server-driven.
 
+## Деплой на сервер (без публикации в npm)
+
+Артефакт — обычный npm-тарболл, собранный из форка:
+
+```bash
+cd apps/server && PATH="$PWD/../../node_modules/.bin:$PATH" pnpm exec vp run build && cd ../..
+node scripts/pack-fork.mjs --version 0.0.31-agy.1   # → apps/server/t3-<версия>.tgz
+scp apps/server/t3-0.0.31-agy.1.tgz server:/tmp/
+ssh server 'npm i -g /tmp/t3-0.0.31-agy.1.tgz && t3 --version'
+```
+
+`npm i -g` замещает официальный глобальный `t3` тем же бинарём с нашим
+драйвером; state (`~/.t3`) не трогается. Если сервер запускался как
+`npx t3@latest` — замените команду запуска на просто `t3` (npx каждый раз
+тянет официальный пакет из npm и затирал бы форк).
+
 ## Обновление на новую версию апстрима
 
 История устроена так: коммит `vendor: t3code upstream snapshot …` = чистые
