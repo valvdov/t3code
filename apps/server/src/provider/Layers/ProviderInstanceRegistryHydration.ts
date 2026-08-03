@@ -91,6 +91,12 @@ export const deriveProviderInstanceConfigMap = (
     const legacyKey = driver.driverKind as keyof ServerSettings["providers"];
     const legacyConfig = settings.providers[legacyKey];
     if (legacyConfig === undefined) {
+      // Fork-added drivers (e.g. `agy`) have no legacy mirror — bootstrap
+      // their default instance from the driver's own default config.
+      merged[instanceId] = {
+        driver: driver.driverKind,
+        config: driver.defaultConfig(),
+      };
       continue;
     }
 

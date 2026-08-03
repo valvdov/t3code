@@ -115,6 +115,9 @@ export const makeAgyTextGeneration = Effect.fn("makeAgyTextGeneration")(function
         env: environment,
         cwd,
         shell: spawnCommand.shell,
+        // `agy` blocks for as long as its stdin pipe stays open — always
+        // close stdin for non-interactive invocations.
+        stdin: "ignore",
       });
 
       const child = yield* commandSpawner

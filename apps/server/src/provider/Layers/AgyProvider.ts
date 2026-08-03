@@ -42,7 +42,7 @@ const EMPTY_CAPABILITIES: ModelCapabilities = createModelCapabilities({
 });
 
 const VERSION_PROBE_TIMEOUT_MS = 4_000;
-const MODELS_PROBE_TIMEOUT_MS = 15_000;
+const MODELS_PROBE_TIMEOUT_MS = 30_000;
 
 /** Preferred default model, matched by prefix against the discovered list. */
 const DEFAULT_MODEL_PREFERENCE = ["gemini-3.1-pro", "gemini-3", "claude", "gemini"] as const;
@@ -120,6 +120,9 @@ const runAgyCommand = (
       ChildProcess.make(spawnCommand.command, spawnCommand.args, {
         env: environment,
         shell: spawnCommand.shell,
+        // `agy` blocks for as long as its stdin pipe stays open — always
+        // close stdin for non-interactive invocations.
+        stdin: "ignore",
       }),
     );
   });

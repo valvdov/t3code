@@ -523,6 +523,9 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
               env: environment,
               ...(ctx.session.cwd ? { cwd: ctx.session.cwd } : {}),
               shell: spawnCommand.shell,
+              // `agy` blocks for as long as its stdin pipe stays open —
+              // always close stdin for non-interactive invocations.
+              stdin: "ignore",
             }),
           )
           .pipe(
