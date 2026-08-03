@@ -22,10 +22,7 @@ import { ServerSettingsService } from "../../serverSettings.ts";
 import { makeAgyTextGeneration } from "../../textGeneration/AgyTextGeneration.ts";
 import { ProviderDriverError } from "../Errors.ts";
 import { makeAgyAdapter } from "../Layers/AgyAdapter.ts";
-import {
-  buildInitialAgyProviderSnapshot,
-  checkAgyProviderStatus,
-} from "../Layers/AgyProvider.ts";
+import { buildInitialAgyProviderSnapshot, checkAgyProviderStatus } from "../Layers/AgyProvider.ts";
 import { ProviderEventLoggers } from "../Layers/ProviderEventLoggers.ts";
 import { makeManagedServerProvider } from "../makeManagedServerProvider.ts";
 import {
@@ -38,7 +35,9 @@ import { mergeProviderInstanceEnvironment } from "../ProviderInstanceEnvironment
 import {
   enrichProviderSnapshotWithVersionAdvisory,
   makeManualOnlyProviderMaintenanceCapabilities,
-  makeStaticProviderMaintenanceResolver,
+  makeProviderMaintenanceCapabilities,
+  normalizeCommandPath,
+  type ProviderMaintenanceCapabilitiesResolver,
   resolveProviderMaintenanceCapabilitiesEffect,
 } from "../providerMaintenance.ts";
 import {
@@ -51,12 +50,40 @@ import { AgySettings } from "./AgySettings.ts";
 const decodeAgySettings = Schema.decodeSync(AgySettings);
 
 const DRIVER_KIND = ProviderDriverKind.make("agy");
-const UPDATE = makeStaticProviderMaintenanceResolver(
-  makeManualOnlyProviderMaintenanceCapabilities({
-    provider: DRIVER_KIND,
-    packageName: null,
-  }),
-);
+
+function isAgyNativeCommandPath(commandPath: string): boolean {
+  const normalized = normalizeCommandPath(commandPath);
+  return normalized.endsWith("/agy") || normalized.endsWith("/agy.exe");
+}
+
+const MANUAL_ONLY = makeManualOnlyProviderMaintenanceCapabilities({
+  provider: DRIVER_KIND,
+  packageName: null,
+});
+
+const NATIVE_UPDATE = makeProviderMaintenanceCapabilities({
+  provider: DRIVER_KIND,
+  packageName: null,
+  updateExecutable: "agy",
+  updateArgs: ["update"],
+  updateLockKey: "agy-native",
+});
+
+/**
+ * Antigravity ships no npm package and no Homebrew formula — the CLI only
+ * updates itself in place. So the package-managed resolver (which infers
+ * npm/brew/… from where the binary lives) would only ever guess wrong here:
+ * offer `agy update` when we can see a real `agy` binary, manual instructions
+ * otherwise.
+ */
+const UPDATE: ProviderMaintenanceCapabilitiesResolver = {
+  resolve: (options) =>
+    [options?.resolvedCommandPath, options?.realCommandPath, options?.binaryPath].some(
+      (candidate) => typeof candidate === "string" && isAgyNativeCommandPath(candidate),
+    )
+      ? NATIVE_UPDATE
+      : MANUAL_ONLY,
+};
 
 export type AgyDriverEnv =
   | BackgroundPolicy.BackgroundPolicy
