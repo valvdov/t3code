@@ -8,17 +8,24 @@ Google Antigravity CLI в headless-режиме (`agy -p … --output-format str
 
 Новые файлы (конфликтов с апстримом не создают):
 
-- `apps/server/src/provider/Drivers/AgySettings.ts` — схема настроек
+- `packages/contracts/src/agySettings.ts` — схема настроек (общая для сервера и web-UI)
+- `apps/server/src/provider/Drivers/AgySettings.ts` — реэкспорт-шим
 - `apps/server/src/provider/Drivers/AgyDriver.ts` — драйвер
 - `apps/server/src/provider/Layers/AgyProvider.ts` — probe (`agy --version`, `agy models`)
-- `apps/server/src/provider/Layers/AgyAdapter.ts` — адаптер чата (процесс на тёрн, resume через `--conversation`)
+- `apps/server/src/provider/Layers/AgyAdapter.ts` — адаптер чата (процесс на тёрн, resume через `--conversation`, контекст-метр)
 - `apps/server/src/textGeneration/AgyTextGeneration.ts` — заголовки тредов / commit messages через `agy --json-schema`
 
-Изменённые файлы апстрима (минимальная поверхность для rebase):
+Изменённые файлы апстрима (минимальная поверхность для rebase; все правки помечены комментарием `Fork-added (see FORK.md)`):
 
+- `packages/contracts/src/index.ts` — +2 строки (экспорт agySettings)
 - `apps/server/src/provider/builtInDrivers.ts` — +3 строки (регистрация драйвера)
 - `apps/server/src/provider/Layers/ProviderInstanceRegistryHydration.ts` — +7 строк
   (бутстрап дефолтного инстанса для драйверов без legacy-зеркала в `settings.providers`)
+- `apps/server/src/provider/Layers/ProviderRegistry.test.ts` — +2 строки ("agy" в ожидаемом списке инстансов)
+- `apps/web/src/components/settings/providerDriverMeta.ts` — запись Antigravity (карточка в Settings → Providers, бейдж «Fork», официальная иконка из апстримного Icons.tsx)
+- `apps/web/src/components/settings/SettingsPanels.tsx` — безопасный fallback для драйверов без legacy-конфига
+- `apps/web/src/components/chat/providerIconUtils.ts` — иконка в model picker/composer
+- `apps/web/src/session-logic.ts` — запись в PROVIDER_OPTIONS (сайдбар пикера)
 
 ## Требования
 
@@ -35,8 +42,16 @@ node apps/server/dist/bin.mjs       # = команда `t3`
 # или dev: node scripts/dev-runner.ts dev (нужен vp: PATH=$PWD/node_modules/.bin:$PATH)
 ```
 
-Провайдер Antigravity появится автоматически (инстанс `agy` бутстрапится с
-дефолтным конфигом). Модели обнаруживаются из `agy models`; дефолт — gemini-3.1-pro-high.
+Инстанс `agy` бутстрапится автоматически, но **по умолчанию выключен** (как
+Cursor в апстриме) — включите тумблером в Settings → Providers → Antigravity;
+выбор сохраняется в `providerInstances` в settings.json. Модели обнаруживаются
+из `agy models`; дефолт — gemini-3.1-pro-high.
+
+Контекст-метр работает: после каждого тёрна адаптер сообщает
+занятость контекста (окна: gemini 1M, claude 200k, gpt-oss 128k) и суммарно
+обработанные токены. Квоты/rate-limits Antigravity CLI наружу не отдаёт —
+их в UI показать нечем; при исчерпании квоты тёрн завершится ошибкой с
+текстом CLI.
 Официальные web/mobile клиенты показывают его без модификаций — список
 провайдеров полностью server-driven.
 

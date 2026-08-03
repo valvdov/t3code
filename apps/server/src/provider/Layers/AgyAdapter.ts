@@ -63,6 +63,31 @@ const PROVIDER = ProviderDriverKind.make("agy");
 const AGY_RESUME_VERSION = 1 as const;
 const AGY_PRINT_TIMEOUT = "60m";
 
+/**
+ * Context-window sizes by model slug prefix, longest-prefix first. The CLI
+ * does not expose per-model limits, so these mirror the published windows of
+ * the model families Antigravity serves. Unknown models fall back to "no
+ * limit known" — the UI then shows absolute token counts without a
+ * percentage meter.
+ */
+const CONTEXT_WINDOW_BY_MODEL_PREFIX: ReadonlyArray<readonly [string, number]> = [
+  ["gemini-", 1_048_576],
+  ["claude-", 200_000],
+  ["gpt-oss-", 131_072],
+];
+
+function contextWindowForModel(model: string | undefined): number | undefined {
+  if (!model) {
+    return undefined;
+  }
+  for (const [prefix, contextWindow] of CONTEXT_WINDOW_BY_MODEL_PREFIX) {
+    if (model.startsWith(prefix)) {
+      return contextWindow;
+    }
+  }
+  return undefined;
+}
+
 export interface AgyAdapterShape extends ProviderAdapterShape<ProviderAdapterError> {}
 
 export interface AgyAdapterLiveOptions {
@@ -93,6 +118,8 @@ interface AgySessionContext {
    * terminal event for them. */
   readonly interruptedTurnIds: Set<TurnId>;
   turns: Array<{ id: TurnId; items: Array<unknown> }>;
+  /** Cumulative tokens processed across all turns of this session. */
+  totalProcessedTokens: number;
   stopped: boolean;
 }
 
@@ -293,6 +320,7 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
           activeTurn: undefined,
           interruptedTurnIds: new Set(),
           turns: [],
+          totalProcessedTokens: 0,
           stopped: false,
         };
         sessions.set(input.threadId, ctx);
@@ -330,7 +358,11 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
     ctx: AgySessionContext,
     turnId: TurnId,
     outcome:
-      | { readonly _tag: "completed"; readonly usage?: typeof AgyUsage.Type | undefined }
+      | {
+          readonly _tag: "completed";
+          readonly usage?: typeof AgyUsage.Type | undefined;
+          readonly model?: string | undefined;
+        }
       | { readonly _tag: "failed"; readonly errorMessage: string }
       | { readonly _tag: "interrupted" },
   ) =>
@@ -346,6 +378,16 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
         case "completed": {
           const usage = outcome.usage;
           if (usage?.total_tokens !== undefined) {
+            // `input_tokens` of a turn already includes the whole
+            // conversation history, so the turn's total is the current
+            // context fill; the per-session accumulator feeds the "total
+            // processed" line in the context-window popover.
+            ctx.totalProcessedTokens += usage.total_tokens;
+            const maxTokens = contextWindowForModel(outcome.model ?? ctx.session.model);
+            const usedTokens =
+              maxTokens !== undefined
+                ? Math.min(usage.total_tokens, maxTokens)
+                : usage.total_tokens;
             yield* offerRuntimeEvent({
               type: "thread.token-usage.updated",
               ...(yield* makeEventStamp()),
@@ -355,10 +397,17 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
               turnId,
               payload: {
                 usage: {
-                  usedTokens: usage.total_tokens,
-                  ...(usage.input_tokens !== undefined ? { inputTokens: usage.input_tokens } : {}),
+                  usedTokens,
+                  ...(maxTokens !== undefined ? { maxTokens } : {}),
+                  ...(ctx.totalProcessedTokens > usedTokens
+                    ? { totalProcessedTokens: ctx.totalProcessedTokens }
+                    : {}),
+                  lastUsedTokens: usage.total_tokens,
+                  ...(usage.input_tokens !== undefined
+                    ? { inputTokens: usage.input_tokens, lastInputTokens: usage.input_tokens }
+                    : {}),
                   ...(usage.output_tokens !== undefined
-                    ? { outputTokens: usage.output_tokens }
+                    ? { outputTokens: usage.output_tokens, lastOutputTokens: usage.output_tokens }
                     : {}),
                   ...(usage.thinking_tokens !== undefined
                     ? { reasoningOutputTokens: usage.thinking_tokens }
@@ -726,7 +775,11 @@ export const makeAgyAdapter = Effect.fn("makeAgyAdapter")(function* (
 
           const sawResult = outcome.sawResult;
           if (sawResult && sawResult.status === "SUCCESS") {
-            yield* settleTurn(liveCtx, turnId, { _tag: "completed", usage: sawResult.usage });
+            yield* settleTurn(liveCtx, turnId, {
+              _tag: "completed",
+              usage: sawResult.usage,
+              model: turnModel,
+            });
           } else {
             const errorMessage =
               sawResult?.error ??

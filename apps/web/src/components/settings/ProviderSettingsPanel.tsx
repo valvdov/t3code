@@ -525,9 +525,9 @@ export function EnvironmentProviderSettings({
     const driver = providerSettings.provider;
     const defaultInstanceId = defaultInstanceIdForDriver(driver);
     const explicitInstance = settings.providerInstances?.[defaultInstanceId];
-    // A remote device may run a server version whose settings predate this
-    // driver, so the legacy mirror can be absent. Without either an explicit
-    // instance or a legacy blob there is nothing to render for the slot.
+    // Fork-added drivers (see FORK.md) have no legacy settings.providers
+    // mirror. Antigravity still needs a default-disabled settings card, while
+    // unknown drivers from an older remote server remain hidden.
     const legacyConfig = legacyProviders[providerSettings.provider];
     const defaultLegacyConfig = defaultLegacyProviders[providerSettings.provider];
     // The envelope is the single enabled flag: keep the legacy in-config
@@ -536,7 +536,9 @@ export function EnvironmentProviderSettings({
     // turn a default-off provider on.
     const synthesizedInstance = (): ProviderInstanceConfig | undefined => {
       if (legacyConfig === undefined) {
-        return undefined;
+        return driver === ProviderDriverKind.make("agy")
+          ? ({ driver, enabled: false, config: {} } satisfies ProviderInstanceConfig)
+          : undefined;
       }
       const { enabled: legacyEnabled, ...legacyConfigRest } = legacyConfig;
       return {
@@ -551,7 +553,8 @@ export function EnvironmentProviderSettings({
     // the driver must still render even when the slot has nothing to show.
     if (effectiveInstance !== undefined) {
       const isDirty =
-        explicitInstance !== undefined || !Equal.equals(legacyConfig, defaultLegacyConfig);
+        explicitInstance !== undefined ||
+        (legacyConfig !== undefined && !Equal.equals(legacyConfig, defaultLegacyConfig));
       rows.push({
         instanceId: defaultInstanceId,
         instance: effectiveInstance,

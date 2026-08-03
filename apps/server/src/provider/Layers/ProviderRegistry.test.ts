@@ -1737,6 +1737,8 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsModule.layerTest(), Te
               );
 
               assert.deepStrictEqual(providers.map((provider) => provider.instanceId).toSorted(), [
+                // Fork-added driver (see FORK.md); default-disabled.
+                "agy",
                 "claudeAgent",
                 "codex",
                 "cursor",

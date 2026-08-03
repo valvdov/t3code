@@ -52,6 +52,13 @@ export const PROVIDER_OPTIONS: Array<{
     available: true,
     pickerSidebarBadge: "new",
   },
+  // Fork-added (see FORK.md): Antigravity CLI driver.
+  {
+    value: ProviderDriverKind.make("agy"),
+    label: "Antigravity",
+    available: true,
+    pickerSidebarBadge: "new",
+  },
 ];
 
 export type WorkLogToolLifecycleStatus =
