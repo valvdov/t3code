@@ -1,5 +1,9 @@
 # Форк t3code: провайдер Antigravity (`agy`)
 
+Канал: **nightly** — форк живёт поверх `upstream/main`, откуда собираются
+nightly-релизы. Ребейз на свежий upstream проходит без конфликтов
+(проверено на 30c96228).
+
 Этот репозиторий — форк [pingdotgg/t3code](https://github.com/pingdotgg/t3code) с одной фичей:
 нативный провайдер **Antigravity** (driver kind `agy`), оборачивающий официальный
 Google Antigravity CLI в headless-режиме (`agy -p … --output-format stream-json`).
@@ -55,7 +59,49 @@ Cursor в апстриме) — включите тумблером в Settings 
 Официальные web/mobile клиенты показывают его без модификаций — список
 провайдеров полностью server-driven.
 
-## Деплой на сервер (без публикации в npm)
+## Сервер собирает форк сам (основной путь)
+
+На сервере `10.0.0.140` живёт самодостаточный пайплайн — ноутбук для обновления
+больше не нужен:
+
+| Что                      | Где                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| Клон апстрима            | `/opt/t3code-fork` (remote `origin` = pingdotgg/t3code)                          |
+| Патчи форка              | `/opt/t3code-fork-patches/*.patch` (НЕ `repo/patches` — там pnpm-патчи апстрима) |
+| Публичный конфиг Connect | `/opt/t3code-fork/.env`                                                          |
+| Скрипт обновления        | `/opt/t3code-fork/update-t3code.sh`                                              |
+| Node для сборки          | `/opt/node24` (системный Node 22 собран без поддержки TS)                        |
+
+`update-t3code.sh` делает: fetch upstream → сброс на `origin/main` (=nightly) →
+`git am` патчей форка → `pnpm install` → сборка → `pack-fork.mjs` → `npm i -g` →
+рестарт `t3code-dev1`/`t3code-dev2`. Версия получается вида
+`0.0.32-nightly.<дата>.<build>-agy.<sha>`. Полный прогон ≈ 40 секунд при тёплом
+кеше. Любая ошибка до шага install оставляет работающую установку нетронутой;
+конфликт патчей о себе явно сообщает. Есть `--dry-run` (собрать, не ставить).
+
+Запускается либо руками по ssh, либо кнопкой в Telegram-боте (см. ниже).
+
+### После изменений в форке
+
+Перегенерировать патчи и залить на сервер:
+
+```bash
+git format-patch upstream/main..main -o /tmp/patches
+scp /tmp/patches/*.patch root@10.0.0.140:/opt/t3code-fork-patches/
+ssh root@10.0.0.140 'rm -f /opt/t3code-fork-patches/<старые>.patch'   # если менялась нумерация
+```
+
+### Telegram-бот управления
+
+`@t3codeTokenBot`, сервис `t3code-tokenbot` (root, `/opt/t3code-tokenbot/bot.mjs`,
+конфиг `/etc/t3code-tokenbot.env`). Кнопки: токены входа для доступных
+пользователей, обновление харнессов (`codex update`, `claude update`,
+`opencode upgrade`, `agy update`), пересборка T3 Code, версии. Обновления видны
+только администратору (в ACL есть `dev1` либо `"admin": true`), остальным кнопки
+не показываются и их callback'и отклоняются. Одновременно выполняется не больше
+одной длительной операции.
+
+## Ручной деплой с ноутбука (запасной путь)
 
 Артефакт — обычный npm-тарболл, собранный из форка:
 
