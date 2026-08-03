@@ -131,27 +131,22 @@ configuration». В корне репо лежит `.env` (гитигнорен)
 
 ## Обновление на новую версию апстрима
 
-История устроена так: коммит `vendor: t3code upstream snapshot …` = чистые
-исходники апстрима, фичевые коммиты — поверх. Remote `upstream` уже добавлен.
-
-Вариант А (если качаете релизы zip-ом):
+Ветка `main` сидит прямо поверх `upstream/main` — пять фичевых коммитов и всё.
+Обновление на свежий upstream (он же nightly):
 
 ```bash
-git checkout -b vendor-update
-# распаковать новый снапшот апстрима ПОВЕРХ рабочего дерева (заменой файлов)
-git add -A && git commit -m "vendor: t3code upstream snapshot vX.Y.Z"
-git checkout main && git rebase vendor-update   # фичевые коммиты перенакатятся
+git fetch upstream main
+git rebase upstream/main            # фичевые коммиты перенакатятся
+pnpm install --ignore-scripts && (cd apps/server && pnpm exec tsgo --noEmit)
 ```
 
-Вариант Б (через git):
+Конфликты возможны только в восьми изменённых файлах выше; правки короткие и
+помечены комментарием `Fork-added` — разрешаются за минуту. После ребейза
+перегенерировать патчи для сервера (см. раздел выше).
 
-```bash
-git fetch upstream
-git rebase --onto upstream/main <vendor-commit> main
-```
-
-Конфликты возможны только в двух изменённых файлах выше; правки трёхстрочные —
-разрешаются за минуту.
+Историческая справка: изначально базой был отдельный коммит
+`vendor: t3code upstream snapshot v0.0.31` (репо скачивали zip-ом). После
+перехода на nightly он вырезан ребейзом; резервная ветка — `backup-0.0.31`.
 
 ## Известные ограничения v1
 
