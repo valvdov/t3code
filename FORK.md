@@ -49,12 +49,21 @@ server-driven):
 показывается, когда оно получено. Окна мержатся по метке: Claude присылает по
 одному окну на событие, и полная замена заставляла бы их мигать.
 
+Где видно:
+
+- **в композере** — блок «Plan usage limits» в поповере контекстного окна
+  (кольцо рядом с кнопкой отправки), как в референсных клиентах: строка на
+  окно с обратным отсчётом до сброса, процентом и полосой;
+- **в Settings → Providers** — компактная строка в карточке провайдера.
+
 Файлы: `packages/contracts/src/providerRateLimits.ts` (контракт),
 `apps/server/src/provider/providerRateLimits.ts` (нормализаторы + тесты),
 `apps/server/src/provider/providerRateLimitStore.ts` (хранилище),
-`apps/web/src/components/settings/ProviderRateLimitsRow.tsx` (UI). Врезки в
-апстрим — по одной строке в `ProviderService.ts` (сбор события) и две в
-`ProviderRegistry.ts` (наложение на снапшоты).
+`apps/web/src/components/chat/ProviderPlanUsageLimits.tsx` (поповер),
+`apps/web/src/components/settings/ProviderRateLimitsRow.tsx` (карточка). Врезки
+в апстрим — по одной строке в `ProviderService.ts` (сбор события), две в
+`ProviderRegistry.ts` (наложение на снапшоты) и по паре в `ChatComposer.tsx` /
+`ContextWindowMeter.tsx` (проброс в поповер).
 
 ## Требования
 
