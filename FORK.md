@@ -31,6 +31,31 @@ Google Antigravity CLI в headless-режиме (`agy -p … --output-format str
 - `apps/web/src/components/chat/providerIconUtils.ts` — иконка в model picker/composer
 - `apps/web/src/session-logic.ts` — запись в PROVIDER_OPTIONS (сайдбар пикера)
 
+## Лимиты аккаунтов в карточках провайдеров
+
+Апстрим уже возит событие `account.rate-limits.updated` с непрозрачным
+payload'ом, но нигде его не показывает. Форк нормализует два вендорных формата
+и выводит их строкой в Settings → Providers (и в мобилке — снапшот
+server-driven):
+
+| Провайдер             | Что отдаёт                                                                 |
+| --------------------- | -------------------------------------------------------------------------- |
+| Codex                 | план, окна (7d/5h) с процентом и временем сброса, баланс кредитов          |
+| Claude                | окно (5h/7d), состояние (ok/warning/exhausted), время сброса; процента нет |
+| Antigravity, OpenCode | ничего — квоты наружу не отдаются                                          |
+
+Данные приходят **только во время работы сессий**, поэтому последнее показание
+хранится в `<baseDir>/caches/rate-limits.json` и переживает рестарты; в строке
+показывается, когда оно получено. Окна мержатся по метке: Claude присылает по
+одному окну на событие, и полная замена заставляла бы их мигать.
+
+Файлы: `packages/contracts/src/providerRateLimits.ts` (контракт),
+`apps/server/src/provider/providerRateLimits.ts` (нормализаторы + тесты),
+`apps/server/src/provider/providerRateLimitStore.ts` (хранилище),
+`apps/web/src/components/settings/ProviderRateLimitsRow.tsx` (UI). Врезки в
+апстрим — по одной строке в `ProviderService.ts` (сбор события) и две в
+`ProviderRegistry.ts` (наложение на снапшоты).
+
 ## Требования
 
 - Node.js 22.16+ / 24.10+
