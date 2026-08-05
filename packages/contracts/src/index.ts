@@ -33,3 +33,5 @@ export * from "./usage.ts";
 export * from "./rpc.ts";
 // Fork-added (see FORK.md): Antigravity (agy) driver settings.
 export * from "./agySettings.ts";
+// Fork-added (see FORK.md): normalized provider rate limits.
+export * from "./providerRateLimits.ts";

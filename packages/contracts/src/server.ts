@@ -18,6 +18,8 @@ import {
   ResolvedKeybindingsConfig,
 } from "./keybindings.ts";
 import { EditorId, RemoteOpenTarget } from "./editor.ts";
+// Fork-added (see FORK.md).
+import { ProviderRateLimits } from "./providerRateLimits.ts";
 import { ModelCapabilities } from "./model.ts";
 import { ProviderDriverKind, ProviderInstanceId } from "./providerInstance.ts";
 import { ServerSettings } from "./settings.ts";
@@ -194,6 +196,10 @@ export const ServerProvider = Schema.Struct({
   skills: Schema.Array(ServerProviderSkill).pipe(Schema.withDecodingDefault(Effect.succeed([]))),
   versionAdvisory: Schema.optionalKey(ServerProviderVersionAdvisory),
   updateState: Schema.optionalKey(ServerProviderUpdateState),
+  // Fork-added (see FORK.md): last account quotas the provider reported.
+  // Optional — providers only push these while they work, and several
+  // (Antigravity, most OpenCode upstreams) never report any.
+  rateLimits: Schema.optionalKey(ProviderRateLimits),
 });
 export type ServerProvider = typeof ServerProvider.Type;
 

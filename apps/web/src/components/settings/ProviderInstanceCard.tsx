@@ -43,6 +43,8 @@ import { ProviderSettingsForm } from "./ProviderSettingsForm";
 import { ProviderModelsSection } from "./ProviderModelsSection";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 import { ProviderAccentColorPicker } from "./ProviderAccentColorPicker";
+// Fork-added (see FORK.md).
+import { ProviderRateLimitsRow } from "./ProviderRateLimitsRow";
 import { RedactedSensitiveText } from "./RedactedSensitiveText";
 import {
   getProviderVersionAdvisoryPresentation,
@@ -594,6 +596,11 @@ export function ProviderInstanceCard({
     </p>
   );
 
+  // Fork-added (see FORK.md): last account quotas the provider reported.
+  const rateLimitsNode = liveProvider?.rateLimits ? (
+    <ProviderRateLimitsRow rateLimits={liveProvider.rateLimits} />
+  ) : null;
+
   const versionCodeNode = versionLabel ? (
     <code className="text-xs text-muted-foreground">{versionLabel}</code>
   ) : null;
@@ -704,6 +711,7 @@ export function ProviderInstanceCard({
               {titleTailNode}
             </div>
             {authRowNode}
+            {rateLimitsNode}
           </div>
           <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:justify-end">
             <Button

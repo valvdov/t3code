@@ -54,6 +54,11 @@ import {
 import type { ProviderInstance } from "../ProviderDriver.ts";
 import { makeManualOnlyProviderMaintenanceCapabilities } from "../providerMaintenance.ts";
 import type { ProviderSnapshotSource } from "../builtInProviderCatalog.ts";
+// Fork-added (see FORK.md).
+import {
+  configureProviderRateLimitStore,
+  overlayProviderRateLimits,
+} from "../providerRateLimitStore.ts";
 
 const loadProviders = (
   providerSources: ReadonlyArray<ProviderSnapshotSource>,
@@ -213,6 +218,12 @@ export const ProviderRegistryLive = Layer.effect(
     const config = yield* ServerConfig;
     const fileSystem = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
+
+    // Fork-added (see FORK.md): quotas live next to the provider status
+    // caches so they survive restarts (providers only report them mid-turn).
+    yield* configureProviderRateLimitStore(
+      path.join(config.providerStatusCacheDir, "rate-limits.json"),
+    );
 
     // Aggregator PubSub — consumers (WS gateway, etc.) subscribe here for
     // coalesced updates across every instance.
@@ -705,7 +716,10 @@ export const ProviderRegistryLive = Layer.effect(
     });
 
     return {
-      getProviders: Ref.get(providersRef),
+      // Fork-added (see FORK.md): hang the last reported account quotas off
+      // the snapshots, so every client gets them through the channel it
+      // already consumes.
+      getProviders: Ref.get(providersRef).pipe(Effect.map(overlayProviderRateLimits)),
       refresh: (provider?: ProviderDriverKind) =>
         refresh(provider).pipe(Effect.catchCause(recoverRefreshFailure)),
       refreshInstance: (instanceId: ProviderInstanceId) =>
@@ -713,7 +727,7 @@ export const ProviderRegistryLive = Layer.effect(
       getProviderMaintenanceCapabilitiesForInstance,
       setProviderMaintenanceActionState,
       get streamChanges() {
-        return Stream.fromPubSub(changesPubSub);
+        return Stream.fromPubSub(changesPubSub).pipe(Stream.map(overlayProviderRateLimits));
       },
     } satisfies ProviderRegistryShape;
   }),

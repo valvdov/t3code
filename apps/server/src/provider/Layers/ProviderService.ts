@@ -58,6 +58,8 @@ import * as AnalyticsService from "../../telemetry/AnalyticsService.ts";
 import * as McpProviderSession from "../../mcp/McpProviderSession.ts";
 import * as McpSessionRegistry from "../../mcp/McpSessionRegistry.ts";
 import * as ServerSettings from "../../serverSettings.ts";
+// Fork-added (see FORK.md).
+import { recordProviderRateLimitEvent } from "../providerRateLimitStore.ts";
 const isModelSelection = Schema.is(ModelSelection);
 
 /**
@@ -348,7 +350,11 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
         increment(providerRuntimeEventsTotal, {
           provider: canonicalEvent.provider,
           eventType: canonicalEvent.type,
-        }).pipe(Effect.andThen(publishRuntimeEvent(canonicalEvent))),
+        }).pipe(
+          // Fork-added (see FORK.md): remember reported account quotas.
+          Effect.andThen(recordProviderRateLimitEvent(canonicalEvent)),
+          Effect.andThen(publishRuntimeEvent(canonicalEvent)),
+        ),
       ),
     );
 
