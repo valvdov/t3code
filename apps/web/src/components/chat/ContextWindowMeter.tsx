@@ -2,6 +2,9 @@ import { Button } from "../ui/button";
 import { type ContextWindowSnapshot, formatContextWindowTokens } from "~/lib/contextWindow";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import { formatContextWindowCompactionMessage } from "./ContextWindowMeter.logic";
+// Fork-added (see FORK.md).
+import type { ProviderRateLimits } from "@t3tools/contracts";
+import { ProviderPlanUsageLimits } from "./ProviderPlanUsageLimits";
 
 function formatPercentage(value: number | null): string | null {
   if (value === null || !Number.isFinite(value)) {
@@ -16,6 +19,8 @@ function formatPercentage(value: number | null): string | null {
 export function ContextWindowMeter(props: {
   usage: ContextWindowSnapshot;
   modelDisplayName?: string | null;
+  /** Fork-added (see FORK.md): plan quotas the provider last reported. */
+  rateLimits?: ProviderRateLimits | null;
 }) {
   const { usage, modelDisplayName } = props;
   const usedPercentage = formatPercentage(usage.usedPercentage);
@@ -131,6 +136,8 @@ export function ContextWindowMeter(props: {
               {formatContextWindowCompactionMessage(modelDisplayName)}
             </div>
           ) : null}
+          {/* Fork-added (see FORK.md): plan quotas below the context window. */}
+          {props.rateLimits ? <ProviderPlanUsageLimits rateLimits={props.rateLimits} /> : null}
         </div>
       </PopoverPopup>
     </Popover>

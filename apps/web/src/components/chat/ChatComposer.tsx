@@ -17,6 +17,8 @@ import {
   ProviderInstanceId,
   PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
   PROVIDER_SEND_TURN_MAX_IMAGE_BYTES,
+  // Fork-added (see FORK.md).
+  type ProviderRateLimits,
 } from "@t3tools/contracts";
 import type { EnvironmentConnectionPresentation } from "@t3tools/client-runtime/connection";
 import { serializeComposerFileLink } from "@t3tools/shared/composerTrigger";
@@ -396,6 +398,8 @@ const ComposerFooterPrimaryActions = memo(function ComposerFooterPrimaryActions(
   compact: boolean;
   activeContextWindow: ReturnType<typeof deriveLatestContextWindowSnapshot>;
   activeThreadModelDisplayName: string | null;
+  // Fork-added (see FORK.md).
+  activeThreadRateLimits: ProviderRateLimits | null;
   isPreparingWorktree: boolean;
   pendingAction: {
     questionIndex: number;
@@ -424,6 +428,7 @@ const ComposerFooterPrimaryActions = memo(function ComposerFooterPrimaryActions(
         <ContextWindowMeter
           usage={props.activeContextWindow}
           modelDisplayName={props.activeThreadModelDisplayName}
+          rateLimits={props.activeThreadRateLimits}
         />
       ) : null}
       {props.isPreparingWorktree ? (
@@ -934,6 +939,17 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   const activeThreadModelDisplayName = useMemo(
     () => resolveContextWindowModelDisplayName(activeThreadModelSelection, modelOptionsByInstance),
     [activeThreadModelSelection, modelOptionsByInstance],
+  );
+  // Fork-added (see FORK.md): plan usage limits for the thread's provider,
+  // rendered inside the context-window popover.
+  const activeThreadRateLimits = useMemo(
+    () =>
+      activeThreadModelSelection
+        ? (providerStatuses.find(
+            (candidate) => candidate.instanceId === activeThreadModelSelection.instanceId,
+          )?.rateLimits ?? null)
+        : null,
+    [providerStatuses, activeThreadModelSelection],
   );
 
   // ------------------------------------------------------------------
@@ -3220,6 +3236,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   compact={isComposerPrimaryActionsCompact}
                   activeContextWindow={activeContextWindow}
                   activeThreadModelDisplayName={activeThreadModelDisplayName}
+                  activeThreadRateLimits={activeThreadRateLimits}
                   pendingAction={pendingPrimaryAction}
                   isRunning={phase === "running"}
                   showPlanFollowUpPrompt={pendingUserInputs.length === 0 && showPlanFollowUpPrompt}
