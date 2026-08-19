@@ -1,5 +1,5 @@
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import { assert, it } from "@effect/vitest";
+import { assert, expect, it } from "@effect/vitest";
 import * as ConfigProvider from "effect/ConfigProvider";
 import * as FileSystem from "effect/FileSystem";
 import * as Effect from "effect/Effect";
@@ -36,6 +36,7 @@ import {
   resolveFffNativeDependencies,
   resolveBuildOptions,
   resolveDesktopBuildIconAssets,
+  resolveDesktopBuildEnvironment,
   resolveDesktopProductName,
   resolveDesktopUpdateChannel,
   resolveDesktopWebAssetBrand,
@@ -78,6 +79,18 @@ function mockProcess(exitCode: number) {
     getOutputFd: () => Stream.empty,
   });
 }
+
+it("stamps the bundled web and server build with the desktop artifact version", () => {
+  expect(
+    resolveDesktopBuildEnvironment("0.0.33-nightly.20260819.1", {
+      PATH: "/usr/bin",
+      APP_VERSION: "old",
+    }),
+  ).toEqual({
+    PATH: "/usr/bin",
+    APP_VERSION: "0.0.33-nightly.20260819.1",
+  });
+});
 
 function iconResizeSpawnerLayer(
   commands: Array<{ readonly command: string; readonly args: ReadonlyArray<string> }>,
