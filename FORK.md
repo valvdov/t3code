@@ -177,6 +177,22 @@ vp run dist:desktop:pacman -- --build-version <nightly-version>
 обработчики `t3code://`/`t3code-dev://`, T3 Connect public config и файл
 `resources/package-type=pacman` для встроенного `electron-updater`.
 
+### GitHub nightly для Arch
+
+`.github/workflows/fork-arch-nightly.yml` запускается ежедневно и вручную на
+бесплатном public Ubuntu runner. Он ребейзит коммиты форка поверх свежего
+`pingdotgg/t3code` `main`, прогоняет точечные проверки, собирает нативный Arch
+пакет и публикует его вместе с `nightly-linux.yml` в prerelease. Конфликт или
+ошибка проверки останавливают workflow до push/release. Хранятся пять последних
+nightly-релизов.
+
+Перед первым запуском в GitHub Repository variables нужно добавить публичные
+значения:
+
+- `T3CODE_RELAY_URL`
+- `T3CODE_CLERK_PUBLISHABLE_KEY`
+- `T3CODE_CLERK_CLI_OAUTH_CLIENT_ID`
+
 Голые бинарники codex/claude, лежавшие в `/usr/local/bin`, переехали в
 `*.pre-npm.bak` — их собственные self-update на общем сервере не работали
 (codex не определял способ установки; claude ставил новую версию в домашний

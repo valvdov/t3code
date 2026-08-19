@@ -1,0 +1,192 @@
+name: Fork Arch Nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fork-arch-nightly
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Rebase, verify, and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      T3CODE_DESKTOP_UPDATE_REPOSITORY: valvdov/t3code
+      T3CODE_RELAY_URL: ${{ vars.T3CODE_RELAY_URL }}
+      T3CODE_CLERK_PUBLISHABLE_KEY: ${{ vars.T3CODE_CLERK_PUBLISHABLE_KEY }}
+      T3CODE_CLERK_CLI_OAUTH_CLIENT_ID: ${{ vars.T3CODE_CLERK_CLI_OAUTH_CLIENT_ID }}
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - id: sync
+        name: Rebase fork commits onto upstream main
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          original_head="$(git rev-parse HEAD)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/pingdotgg/t3code.git
+          git fetch --no-tags upstream main
+          git rebase upstream/main
+
+          rebased_head="$(git rev-parse HEAD)"
+          echo "original_head=$original_head" >> "$GITHUB_OUTPUT"
+          echo "rebased_head=$rebased_head" >> "$GITHUB_OUTPUT"
+
+          if [[ "$EVENT_NAME" == "schedule" ]] && git tag --points-at HEAD --list 'v*-nightly.*' | grep -q .; then
+            echo "No fork or upstream changes since the last successful nightly."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate T3 Connect public configuration
+        if: steps.sync.outputs.release == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            T3CODE_RELAY_URL
+            T3CODE_CLERK_PUBLISHABLE_KEY
+            T3CODE_CLERK_CLI_OAUTH_CLIENT_ID
+          )
+          missing=()
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing required repository variables: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Install Linux packaging tools
+        if: steps.sync.outputs.release == 'true'
+        run: sudo apt-get update && sudo apt-get install --yes imagemagick zstd
+
+      - name: Setup Vite+
+        if: steps.sync.outputs.release == 'true'
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: true
+
+      - id: release_meta
+        name: Resolve nightly version
+        if: steps.sync.outputs.release == 'true'
+        shell: bash
+        env:
+          NIGHTLY_DATE: ${{ github.run_started_at }}
+          NIGHTLY_SHA: ${{ steps.sync.outputs.rebased_head }}
+          NIGHTLY_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          nightly_date="$(date -u -d "$NIGHTLY_DATE" +%Y%m%d)"
+          node scripts/resolve-nightly-release.ts \
+            --date "$nightly_date" \
+            --run-number "$NIGHTLY_RUN_NUMBER" \
+            --sha "$NIGHTLY_SHA" \
+            --github-output
+
+      - name: Run focused fork checks
+        if: steps.sync.outputs.release == 'true'
+        run: |
+          vp test run \
+            apps/server/src/provider/Drivers/CodexDriver.test.ts \
+            apps/server/src/provider/providerMaintenance.test.ts \
+            apps/desktop/src/updates/DesktopUpdates.test.ts \
+            apps/desktop/src/electron/ElectronUpdater.test.ts \
+            scripts/build-desktop-artifact.test.ts
+          vp lint --type-aware --type-check \
+            apps/server/src/provider/Drivers/CodexDriver.ts \
+            apps/server/src/version.ts \
+            apps/desktop/src/updates/DesktopUpdates.ts \
+            scripts/build-desktop-artifact.ts
+
+      - name: Build native Arch package
+        if: steps.sync.outputs.release == 'true'
+        env:
+          T3CODE_DESKTOP_VERSION: ${{ steps.release_meta.outputs.version }}
+        run: pnpm dist:desktop:pacman
+
+      - id: artifact
+        name: Verify release artifacts
+        if: steps.sync.outputs.release == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.release_meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          package="release/t3-code-nightly-${VERSION}-x64.pkg.tar.zst"
+          metadata="release/nightly-linux.yml"
+          test -s "$package"
+          test -s "$metadata"
+          grep -Fq "version: $VERSION" "$metadata"
+          grep -Fq "$(basename "$package")" "$metadata"
+          package_type="$(tar --zstd -xOf "$package" 'opt/T3 Code (Nightly)/resources/package-type')"
+          test "$package_type" = "pacman"
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+          echo "metadata=$metadata" >> "$GITHUB_OUTPUT"
+
+      - name: Push verified upstream rebase
+        if: steps.sync.outputs.release == 'true'
+        shell: bash
+        env:
+          ORIGINAL_HEAD: ${{ steps.sync.outputs.original_head }}
+        run: |
+          git push \
+            --force-with-lease="refs/heads/main:$ORIGINAL_HEAD" \
+            origin HEAD:main
+
+      - name: Publish nightly prerelease
+        if: steps.sync.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release_meta.outputs.tag }}
+          TITLE: ${{ steps.release_meta.outputs.name }}
+          VERSION: ${{ steps.release_meta.outputs.version }}
+          PACKAGE: ${{ steps.artifact.outputs.package }}
+          METADATA: ${{ steps.artifact.outputs.metadata }}
+        run: |
+          gh release create "$TAG" \
+            "$PACKAGE" \
+            "$METADATA" \
+            --target "${{ steps.sync.outputs.rebased_head }}" \
+            --title "$TITLE" \
+            --prerelease \
+            --notes "Automated T3 Code fork nightly $VERSION with Antigravity and native Arch updates."
+
+      - name: Keep the five newest fork nightlies
+        if: steps.sync.outputs.release == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+            | jq -r '[.[] | select(.isPrerelease and (.tagName | test("^v.*-nightly\\.")))] | sort_by(.createdAt) | reverse | .[5:][]?.tagName' \
+            | while IFS= read -r tag; do
+                [[ -n "$tag" ]] || continue
+                gh release delete "$tag" --yes --cleanup-tag
+              done

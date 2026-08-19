@@ -48,7 +48,7 @@ First prove that the existing fork can produce a native Arch desktop package wit
 2. Scheduled runs publish only when a new upstream nightly is available.
 3. Patch, test, or build failures publish nothing and leave the prior release intact.
 4. Old fork nightlies are pruned according to a documented retention rule.
-   **Plans**: TBD
+   **Plans**: 3 plans — safe upstream sync, verified Arch release, repository bootstrap and retention
 
 ### Phase 4: Target-Machine Rollout
 

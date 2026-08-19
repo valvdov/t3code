@@ -10,9 +10,9 @@ See: PROJECT.md (updated 2026-08-19)
 ## Current Position
 
 Phase: 3 of 4 (GitHub Nightly Pipeline)
-Plan: 0 of TBD in current phase
-Status: Researching public repository bootstrap and release workflow
-Last activity: 2026-08-19 — Phase 2 verified: pacman feed/checksum/polkit chain and packaged T3 Connect are present; 20 updater tests pass.
+Plan: 2 of 3 in current phase
+Status: In progress — workflow implemented; GitHub repository bootstrap pending
+Last activity: 2026-08-19 — Added safe upstream rebase, focused verification, native Arch prerelease, and five-release retention workflow.
 
 Progress: [██████░░░░] 60%
 
@@ -33,6 +33,8 @@ Progress: [██████░░░░] 60%
 - [Phase 2]: Keep unsupported Linux package types disabled and preserve AppImage behavior.
 - [Phase 2]: Use the public GitHub feed metadata as the single checksum source; no separate privileged updater service.
 - [Phase 2]: Defer interactive Connect sign-in and controlled newer-version installation to Phase 4.
+- [Phase 3]: Run daily at 03:17 UTC and on manual dispatch using `ubuntu-24.04` public runners.
+- [Phase 3]: Retain five fork nightly prereleases.
 
 ### Pending todos
 
