@@ -2142,6 +2142,36 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
         packageName: "t3-code-nightly",
         compression: "zstd",
         artifactName: "t3-code-nightly-${version}-${arch}.pkg.tar.zst",
+        // electron-builder's pacman defaults still reference packages such as
+        // http-parser that no longer exist in Arch. These match the shared
+        // libraries used by the bundled Electron runtime plus desktop helpers.
+        depends: [
+          "alsa-lib",
+          "at-spi2-core",
+          "cairo",
+          "cups",
+          "dbus",
+          "expat",
+          "gcc-libs",
+          "glib2",
+          "glibc",
+          "gtk3",
+          "libappindicator-gtk3",
+          "libnotify",
+          "libx11",
+          "libxcb",
+          "libxcomposite",
+          "libxdamage",
+          "libxext",
+          "libxfixes",
+          "libxkbcommon",
+          "libxrandr",
+          "libxss",
+          "mesa",
+          "nss",
+          "systemd-libs",
+          "xdg-utils",
+        ],
       };
     }
   }
