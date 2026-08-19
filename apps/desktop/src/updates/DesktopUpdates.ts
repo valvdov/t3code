@@ -219,11 +219,12 @@ function shouldBroadcastDownloadProgress(
   return nextStep !== previousStep || nextPercent === 100;
 }
 
-function getAutoUpdateDisabledReason(args: {
+export function getAutoUpdateDisabledReason(args: {
   isDevelopment: boolean;
   isPackaged: boolean;
   platform: NodeJS.Platform;
   appImage?: string | undefined;
+  packageType?: string | undefined;
   disabledByEnv: boolean;
   hasUpdateFeedConfig: boolean;
 }): string | null {
@@ -236,8 +237,8 @@ function getAutoUpdateDisabledReason(args: {
   if (args.disabledByEnv) {
     return "Automatic updates are disabled by the T3CODE_DISABLE_AUTO_UPDATE setting.";
   }
-  if (args.platform === "linux" && !args.appImage) {
-    return "Automatic updates on Linux require running the AppImage build.";
+  if (args.platform === "linux" && !args.appImage && args.packageType !== "pacman") {
+    return "Automatic updates on Linux require an AppImage or native pacman build.";
   }
   return null;
 }
@@ -255,6 +256,12 @@ export const make = Effect.gen(function* () {
   const environment = yield* DesktopEnvironment.DesktopEnvironment;
   const fileSystem = yield* FileSystem.FileSystem;
   const desktopSettings = yield* DesktopAppSettings.DesktopAppSettings;
+  const packageType = yield* fileSystem
+    .readFileString(environment.path.join(environment.resourcesPath, "package-type"), "utf-8")
+    .pipe(
+      Effect.map((value) => value.trim()),
+      Effect.orElseSucceed(() => ""),
+    );
 
   const appUpdateYmlConfigRef = yield* Ref.make<Option.Option<AppUpdateYmlConfig>>(Option.none());
   const activeUpdateActionRef = yield* Ref.make<Option.Option<UpdateAction>>(Option.none());
@@ -307,6 +314,7 @@ export const make = Effect.gen(function* () {
         isPackaged: environment.isPackaged,
         platform: environment.platform,
         appImage: Option.getOrUndefined(config.appImagePath),
+        packageType,
         disabledByEnv: config.disableAutoUpdate,
         hasUpdateFeedConfig: hasFeedConfig,
       }),

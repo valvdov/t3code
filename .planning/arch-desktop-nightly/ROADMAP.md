@@ -35,7 +35,7 @@ First prove that the existing fork can produce a native Arch desktop package wit
 1. A packaged pacman build enables the existing updater while unpackaged Linux and unsupported package formats remain disabled.
 2. Download and installation use GitHub updater metadata, checksum validation, a polkit prompt, and `pacman -U`.
 3. T3 Connect sign-in and OAuth callback configuration are present in the package.
-   **Plans**: TBD
+   **Plans**: 3 plans — pacman eligibility, install safety proof, packaged Connect proof
 
 ### Phase 3: GitHub Nightly Pipeline
 

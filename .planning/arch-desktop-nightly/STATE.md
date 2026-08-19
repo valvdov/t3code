@@ -10,9 +10,9 @@ See: PROJECT.md (updated 2026-08-19)
 ## Current Position
 
 Phase: 2 of 4 (In-App Updates and Connect)
-Plan: 0 of TBD in current phase
-Status: Researching updater and packaged Connect behavior
-Last activity: 2026-08-19 — Phase 1 verified with a real Arch package; desktop and bundled server report the same nightly version.
+Plan: 1 of 3 in current phase
+Status: In progress — pacman eligibility implemented; packaged safety and Connect proofs pending
+Last activity: 2026-08-19 — Enabled the existing Linux updater gate for `resources/package-type=pacman`; 19 focused updater tests pass.
 
 Progress: [███░░░░░░░] 30%
 
@@ -29,6 +29,8 @@ Progress: [███░░░░░░░] 30%
 - [Phase 1]: Name the native Arch package `t3-code-nightly` and publish it on the `nightly` prerelease channel.
 - [Phase 1]: Replace electron-builder's obsolete pacman dependency defaults with current Arch runtime packages.
 - [Phase 1]: Stamp desktop, web, and bundled server with the same nightly artifact version.
+- [Phase 2]: Reuse `electron-updater` PacmanUpdater and the existing desktop update state machine; do not add a privileged background service.
+- [Phase 2]: Keep unsupported Linux package types disabled and preserve AppImage behavior.
 
 ### Pending todos
 

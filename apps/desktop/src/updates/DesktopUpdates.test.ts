@@ -228,6 +228,27 @@ function makeHarness(options: UpdatesHarnessOptions = {}) {
 }
 
 describe("DesktopUpdates", () => {
+  it("enables packaged Linux updates only for AppImage and pacman builds", () => {
+    const base = {
+      isDevelopment: false,
+      isPackaged: true,
+      platform: "linux" as const,
+      disabledByEnv: false,
+      hasUpdateFeedConfig: true,
+    };
+
+    assert.isNull(DesktopUpdates.getAutoUpdateDisabledReason({ ...base, appImage: "/app" }));
+    assert.isNull(DesktopUpdates.getAutoUpdateDisabledReason({ ...base, packageType: "pacman" }));
+    assert.equal(
+      DesktopUpdates.getAutoUpdateDisabledReason({ ...base, packageType: "deb" }),
+      "Automatic updates on Linux require an AppImage or native pacman build.",
+    );
+    assert.equal(
+      DesktopUpdates.getAutoUpdateDisabledReason(base),
+      "Automatic updates on Linux require an AppImage or native pacman build.",
+    );
+  });
+
   it("preserves complete causes for update poller and event failures", () => {
     const cause = Cause.combine(
       Cause.fail(new Error("updater failed")),
