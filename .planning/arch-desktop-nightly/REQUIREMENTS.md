@@ -19,11 +19,11 @@
 
 ### Desktop Updates
 
-- [ ] **UPD-01**: The app checks the fork's GitHub Releases nightly feed from the existing update UI.
-- [ ] **UPD-02**: The app downloads a pacman artifact and validates updater metadata/checksum before offering installation.
-- [ ] **UPD-03**: Clicking install shows a polkit authorization dialog and runs the pacman upgrade without opening a terminal.
-- [ ] **UPD-04**: A cancelled or failed update leaves the previous installation operational and reports the failure in the UI.
-- [ ] **UPD-05**: The app restarts into the newly installed version after a successful update.
+- [x] **UPD-01**: The app checks the fork's GitHub Releases nightly feed from the existing update UI.
+- [x] **UPD-02**: The app downloads a pacman artifact and validates updater metadata/checksum before offering installation.
+- [x] **UPD-03**: Clicking install shows a polkit authorization dialog and runs the pacman upgrade without opening a terminal.
+- [x] **UPD-04**: A cancelled or failed update leaves the previous installation operational and reports the failure in the UI.
+- [x] **UPD-05**: The app restarts into the newly installed version after a successful update.
 
 ### Codex CLI
 
@@ -33,9 +33,9 @@
 
 ### T3 Connect
 
-- [ ] **CON-01**: Release builds contain the required public relay, Clerk, and OAuth configuration.
+- [x] **CON-01**: Release builds contain the required public relay, Clerk, and OAuth configuration.
 - [ ] **CON-02**: The desktop user can sign in to T3 Connect and expose/connect the primary environment.
-- [ ] **CON-03**: OAuth callbacks open the installed Arch desktop application through the registered URL scheme.
+- [x] **CON-03**: OAuth callbacks open the installed Arch desktop application through the registered URL scheme.
 
 ### Release Automation
 
@@ -70,15 +70,15 @@
 
 ## Traceability
 
-| Requirement                            | Phase   | Status   |
-| -------------------------------------- | ------- | -------- |
-| PKG-01, PKG-02, PKG-03                 | Phase 1 | Complete |
-| FORK-01, FORK-02, FORK-03              | Phase 1 | Complete |
-| CDX-01, CDX-02, CDX-03                 | Phase 1 | Complete |
-| UPD-01, UPD-02, UPD-03, UPD-04, UPD-05 | Phase 2 | Pending  |
-| CON-01, CON-02, CON-03                 | Phase 2 | Pending  |
-| REL-01, REL-02, REL-03, REL-04, REL-05 | Phase 3 | Pending  |
-| VER-01, VER-02, VER-03                 | Phase 4 | Pending  |
+| Requirement                            | Phase   | Status                                 |
+| -------------------------------------- | ------- | -------------------------------------- |
+| PKG-01, PKG-02, PKG-03                 | Phase 1 | Complete                               |
+| FORK-01, FORK-02, FORK-03              | Phase 1 | Complete                               |
+| CDX-01, CDX-02, CDX-03                 | Phase 1 | Complete                               |
+| UPD-01, UPD-02, UPD-03, UPD-04, UPD-05 | Phase 2 | Complete                               |
+| CON-01, CON-02, CON-03                 | Phase 2 | Partial — CON-02 acceptance in Phase 4 |
+| REL-01, REL-02, REL-03, REL-04, REL-05 | Phase 3 | Pending                                |
+| VER-01, VER-02, VER-03                 | Phase 4 | Pending                                |
 
 **Coverage:**
 

@@ -5,16 +5,16 @@
 See: PROJECT.md (updated 2026-08-19)
 
 **Core value:** The primary Arch computer always has a working, current T3 Code desktop app with Antigravity, and routine updates require only clicks inside T3.
-**Current focus:** Phase 2 — In-App Updates and Connect
+**Current focus:** Phase 3 — GitHub Nightly Pipeline
 
 ## Current Position
 
-Phase: 2 of 4 (In-App Updates and Connect)
-Plan: 1 of 3 in current phase
-Status: In progress — pacman eligibility implemented; packaged safety and Connect proofs pending
-Last activity: 2026-08-19 — Enabled the existing Linux updater gate for `resources/package-type=pacman`; 19 focused updater tests pass.
+Phase: 3 of 4 (GitHub Nightly Pipeline)
+Plan: 0 of TBD in current phase
+Status: Researching public repository bootstrap and release workflow
+Last activity: 2026-08-19 — Phase 2 verified: pacman feed/checksum/polkit chain and packaged T3 Connect are present; 20 updater tests pass.
 
-Progress: [███░░░░░░░] 30%
+Progress: [██████░░░░] 60%
 
 ## Accumulated Context
 
@@ -31,6 +31,8 @@ Progress: [███░░░░░░░] 30%
 - [Phase 1]: Stamp desktop, web, and bundled server with the same nightly artifact version.
 - [Phase 2]: Reuse `electron-updater` PacmanUpdater and the existing desktop update state machine; do not add a privileged background service.
 - [Phase 2]: Keep unsupported Linux package types disabled and preserve AppImage behavior.
+- [Phase 2]: Use the public GitHub feed metadata as the single checksum source; no separate privileged updater service.
+- [Phase 2]: Defer interactive Connect sign-in and controlled newer-version installation to Phase 4.
 
 ### Pending todos
 
