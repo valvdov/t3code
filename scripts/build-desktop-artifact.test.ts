@@ -501,6 +501,7 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
       assert.deepStrictEqual(pacman.pacman, {
         packageName: "t3-code-nightly",
         compression: "zstd",
+        artifactName: "t3-code-nightly-${version}-${arch}.pkg.tar.zst",
       });
       assert.deepStrictEqual((pacman.linux as Record<string, unknown>).protocols, [
         { name: "T3 Code", schemes: ["t3code", "t3code-dev"] },

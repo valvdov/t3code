@@ -2141,6 +2141,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       buildConfig.pacman = {
         packageName: "t3-code-nightly",
         compression: "zstd",
+        artifactName: "t3-code-nightly-${version}-${arch}.pkg.tar.zst",
       };
     }
   }
