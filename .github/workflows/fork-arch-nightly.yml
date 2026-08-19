@@ -128,7 +128,7 @@ jobs:
         if: steps.sync.outputs.release == 'true'
         env:
           T3CODE_DESKTOP_VERSION: ${{ steps.release_meta.outputs.version }}
-        run: pnpm dist:desktop:pacman
+        run: vp run dist:desktop:pacman
 
       - id: artifact
         name: Verify release artifacts
