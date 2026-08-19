@@ -83,7 +83,7 @@ jobs:
 
       - name: Install Linux packaging tools
         if: steps.sync.outputs.release == 'true'
-        run: sudo apt-get update && sudo apt-get install --yes imagemagick zstd
+        run: sudo apt-get update && sudo apt-get install --yes imagemagick libarchive-tools zstd
 
       - name: Setup Vite+
         if: steps.sync.outputs.release == 'true'
