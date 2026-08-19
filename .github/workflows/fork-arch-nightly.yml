@@ -142,6 +142,10 @@ jobs:
           grep -Fq "$(basename "$package")" "$metadata"
           package_type="$(tar --zstd -xOf "$package" 'opt/T3 Code (Nightly)/resources/package-type')"
           test "$package_type" = "pacman"
+          if tar --zstd -xOf "$package" .MTREE | gzip -dc | grep -Eq '(^|[[:space:]])(uid|gid)=[1-9]'; then
+            echo "Pacman package metadata contains non-root ownership." >&2
+            exit 1
+          fi
           echo "package=$package" >> "$GITHUB_OUTPUT"
           echo "metadata=$metadata" >> "$GITHUB_OUTPUT"
 

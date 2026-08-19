@@ -2149,6 +2149,9 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
         packageName: "t3-code-nightly",
         compression: "zstd",
         artifactName: "t3-code-nightly-${version}-${arch}.pkg.tar.zst",
+        // fpm generates .MTREE before its final archive normalization. Pinning
+        // these values keeps pacman -Qkk from expecting the CI runner's uid/gid.
+        fpm: ["--pacman-user=root", "--pacman-group=root"],
         // electron-builder's pacman defaults still reference packages such as
         // http-parser that no longer exist in Arch. These match the shared
         // libraries used by the bundled Electron runtime plus desktop helpers.

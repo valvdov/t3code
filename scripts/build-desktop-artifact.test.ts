@@ -515,6 +515,7 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         packageName: "t3-code-nightly",
         compression: "zstd",
         artifactName: "t3-code-nightly-${version}-${arch}.pkg.tar.zst",
+        fpm: ["--pacman-user=root", "--pacman-group=root"],
         depends: [
           "alsa-lib",
           "at-spi2-core",
