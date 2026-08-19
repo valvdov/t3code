@@ -172,6 +172,7 @@ jobs:
           gh release create "$TAG" \
             "$PACKAGE" \
             "$METADATA" \
+            --repo "$GITHUB_REPOSITORY" \
             --target "${{ steps.sync.outputs.rebased_head }}" \
             --title "$TITLE" \
             --prerelease \
@@ -184,9 +185,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isPrerelease,createdAt \
             | jq -r '[.[] | select(.isPrerelease and (.tagName | test("^v.*-nightly\\.")))] | sort_by(.createdAt) | reverse | .[5:][]?.tagName' \
             | while IFS= read -r tag; do
                 [[ -n "$tag" ]] || continue
-                gh release delete "$tag" --yes --cleanup-tag
+                gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
               done
