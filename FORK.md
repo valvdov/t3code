@@ -150,6 +150,33 @@ ssh root@10.0.0.140 'rm -f /opt/t3code-fork-patches/<старые>.patch'   # е
 | OpenCode    | `opencode-ai`               | `npm i -g opencode-ai@latest`               |
 | Antigravity | — (нет пакета)              | `agy update` (самообновление на месте)      |
 
+На desktop/Linux Codex, установленный официальным standalone-скриптом в
+`~/.local/bin/codex`, обновляется той же кнопкой **Update now**, но через
+официальный unattended installer:
+
+```bash
+curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+```
+
+Установки Codex из npm/pnpm/bun/Homebrew продолжают обновляться своим пакетным
+менеджером; standalone-команда выбирается только для `~/.local/bin/codex`.
+
+### Arch desktop package
+
+Форк собирает нативный x86_64 пакет для Arch тем же desktop-builder, что и
+официальные AppImage/DMG/NSIS артефакты:
+
+```bash
+APP_VERSION=<nightly-version> \
+T3CODE_DESKTOP_UPDATE_REPOSITORY=valvdov/t3code \
+vp run dist:desktop:pacman -- --build-version <nightly-version>
+```
+
+Результат создаётся в `release/` как pacman-артефакт с package name
+`t3-code-nightly`. Внутри остаются bundled server, desktop entry, иконки,
+обработчики `t3code://`/`t3code-dev://`, T3 Connect public config и файл
+`resources/package-type=pacman` для встроенного `electron-updater`.
+
 Голые бинарники codex/claude, лежавшие в `/usr/local/bin`, переехали в
 `*.pre-npm.bak` — их собственные self-update на общем сервере не работали
 (codex не определял способ установки; claude ставил новую версию в домашний

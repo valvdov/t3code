@@ -428,6 +428,15 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         undefined,
         undefined,
       );
+      const pacman = yield* createBuildConfig(
+        "linux",
+        "pacman",
+        "1.2.3-nightly.20260819.1133",
+        false,
+        false,
+        undefined,
+        undefined,
+      );
       const win = yield* createBuildConfig(
         "win",
         "nsis",
@@ -481,11 +490,34 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
       assert.deepStrictEqual((linux.linux as Record<string, unknown>).protocols, [
         { name: "T3 Code", schemes: ["t3code", "t3code-dev"] },
       ]);
-      for (const config of [mac, linux, win]) {
+      assert.deepStrictEqual((pacman.linux as Record<string, unknown>).target, ["pacman"]);
+      assert.deepStrictEqual(pacman.pacman, {
+        packageName: "t3-code-nightly",
+        compression: "zstd",
+      });
+      assert.deepStrictEqual((pacman.linux as Record<string, unknown>).protocols, [
+        { name: "T3 Code", schemes: ["t3code", "t3code-dev"] },
+      ]);
+      assert.deepStrictEqual(pacman.publish, [
+        {
+          provider: "github",
+          owner: "valvdov",
+          repo: "t3code",
+          releaseType: "prerelease",
+          channel: "nightly",
+        },
+      ]);
+      for (const config of [mac, linux, pacman, win]) {
         assert.deepStrictEqual(config.electronLanguages, DESKTOP_ELECTRON_LANGUAGES);
         assert.deepStrictEqual(config.files, DESKTOP_FILE_EXCLUSIONS);
       }
-    }).pipe(Effect.provide(ConfigProvider.layer(ConfigProvider.fromEnv({ env: {} })))),
+    }).pipe(
+      Effect.provide(
+        ConfigProvider.layer(
+          ConfigProvider.fromEnv({ env: { T3CODE_DESKTOP_UPDATE_REPOSITORY: "valvdov/t3code" } }),
+        ),
+      ),
+    ),
   );
 
   it.effect("validates every ASAR-unpacked native in the packaged Windows payload", () =>

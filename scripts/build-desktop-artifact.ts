@@ -2128,6 +2128,15 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
         },
       },
     };
+    if (target === "pacman") {
+      // Fork-added (see FORK.md): a native Arch package keeps desktop
+      // integration and gives electron-updater a package-type marker so its
+      // PacmanUpdater can perform future upgrades through polkit.
+      buildConfig.pacman = {
+        packageName: "t3-code-nightly",
+        compression: "zstd",
+      };
+    }
   }
 
   if (platform === "win") {
