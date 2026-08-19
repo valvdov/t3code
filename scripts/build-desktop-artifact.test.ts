@@ -491,6 +491,13 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         { name: "T3 Code", schemes: ["t3code", "t3code-dev"] },
       ]);
       assert.deepStrictEqual((pacman.linux as Record<string, unknown>).target, ["pacman"]);
+      assert.deepStrictEqual(pacman.extraMetadata, {
+        homepage: "https://github.com/valvdov/t3code",
+      });
+      assert.equal(
+        (pacman.linux as Record<string, unknown>).maintainer,
+        "Valerii Vdovin <valvdov@users.noreply.github.com>",
+      );
       assert.deepStrictEqual(pacman.pacman, {
         packageName: "t3-code-nightly",
         compression: "zstd",
