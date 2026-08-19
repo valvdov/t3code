@@ -6,7 +6,7 @@ First prove that the existing fork can produce a native Arch desktop package wit
 
 ## Phases
 
-- [ ] **Phase 1: Installable Fork Package** - Produce a native Arch package containing Antigravity and the official Codex updater action.
+- [x] **Phase 1: Installable Fork Package** - Produce a native Arch package containing Antigravity and the official Codex updater action.
 - [ ] **Phase 2: In-App Updates and Connect** - Make the installed package update through polkit and verify T3 Connect configuration.
 - [ ] **Phase 3: GitHub Nightly Pipeline** - Publish reproducible fork nightlies and updater metadata from a public repository.
 - [ ] **Phase 4: Target-Machine Rollout** - Install and verify the full user flow on the Arch computer.

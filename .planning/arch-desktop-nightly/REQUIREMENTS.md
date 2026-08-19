@@ -7,15 +7,15 @@
 
 ### Packaging
 
-- [ ] **PKG-01**: Maintainer can build an x86_64 pacman-installable T3 Code desktop artifact.
-- [ ] **PKG-02**: The package installs an application launcher, icons, URL protocol handlers, and the bundled T3 server.
-- [ ] **PKG-03**: Desktop and bundled server report the same upstream nightly version.
+- [x] **PKG-01**: Maintainer can build an x86_64 pacman-installable T3 Code desktop artifact.
+- [x] **PKG-02**: The package installs an application launcher, icons, URL protocol handlers, and the bundled T3 server.
+- [x] **PKG-03**: Desktop and bundled server report the same upstream nightly version.
 
 ### Fork
 
-- [ ] **FORK-01**: The desktop build includes the Antigravity provider and its settings UI.
-- [ ] **FORK-02**: The desktop build includes provider rate-limit and context-window usage UI.
-- [ ] **FORK-03**: Applying fork changes to an incompatible upstream fails before publishing or installing anything.
+- [x] **FORK-01**: The desktop build includes the Antigravity provider and its settings UI.
+- [x] **FORK-02**: The desktop build includes provider rate-limit and context-window usage UI.
+- [x] **FORK-03**: Applying fork changes to an incompatible upstream fails before publishing or installing anything.
 
 ### Desktop Updates
 
@@ -27,9 +27,9 @@
 
 ### Codex CLI
 
-- [ ] **CDX-01**: A Codex binary installed at the standalone installer path is recognized as one-click updatable.
-- [ ] **CDX-02**: Clicking Codex `Update now` runs OpenAI's official installer with `CODEX_NON_INTERACTIVE=1`.
-- [ ] **CDX-03**: T3 refreshes the provider snapshot and displays the resulting Codex version or a useful failure message.
+- [x] **CDX-01**: A Codex binary installed at the standalone installer path is recognized as one-click updatable.
+- [x] **CDX-02**: Clicking Codex `Update now` runs OpenAI's official installer with `CODEX_NON_INTERACTIVE=1`.
+- [x] **CDX-03**: T3 refreshes the provider snapshot and displays the resulting Codex version or a useful failure message.
 
 ### T3 Connect
 
@@ -70,15 +70,15 @@
 
 ## Traceability
 
-| Requirement                            | Phase   | Status  |
-| -------------------------------------- | ------- | ------- |
-| PKG-01, PKG-02, PKG-03                 | Phase 1 | Pending |
-| FORK-01, FORK-02, FORK-03              | Phase 1 | Pending |
-| CDX-01, CDX-02, CDX-03                 | Phase 1 | Pending |
-| UPD-01, UPD-02, UPD-03, UPD-04, UPD-05 | Phase 2 | Pending |
-| CON-01, CON-02, CON-03                 | Phase 2 | Pending |
-| REL-01, REL-02, REL-03, REL-04, REL-05 | Phase 3 | Pending |
-| VER-01, VER-02, VER-03                 | Phase 4 | Pending |
+| Requirement                            | Phase   | Status   |
+| -------------------------------------- | ------- | -------- |
+| PKG-01, PKG-02, PKG-03                 | Phase 1 | Complete |
+| FORK-01, FORK-02, FORK-03              | Phase 1 | Complete |
+| CDX-01, CDX-02, CDX-03                 | Phase 1 | Complete |
+| UPD-01, UPD-02, UPD-03, UPD-04, UPD-05 | Phase 2 | Pending  |
+| CON-01, CON-02, CON-03                 | Phase 2 | Pending  |
+| REL-01, REL-02, REL-03, REL-04, REL-05 | Phase 3 | Pending  |
+| VER-01, VER-02, VER-03                 | Phase 4 | Pending  |
 
 **Coverage:**
 
