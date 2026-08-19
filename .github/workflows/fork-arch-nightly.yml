@@ -29,10 +29,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          sparse-checkout: |
-            /*
-            !/.repos/
-          sparse-checkout-cone-mode: false
 
       - id: sync
         name: Rebase fork commits onto upstream main
